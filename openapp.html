@@ -50,9 +50,6 @@
             border: 1px solid #2196F3;
             color: #2196F3;
         }
-        .btn-outline:hover {
-            background-color: #f0f0f0;
-        }
         .loading {
             margin: 20px 0;
             color: #999;
@@ -63,118 +60,65 @@
         .button-group {
             margin-top: 20px;
         }
-        .error-message {
-            color: #f44336;
-            font-size: 14px;
-            margin-top: 10px;
-        }
     </style>
     <script>
         var openTimer = null;
-        var appOpened = false;
         var activityId = '1';
-        var retryCount = 0;
-        var maxRetries = 2;
 
         function getQueryParam(name) {
             var urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(name);
         }
 
-        // 清除定时器
-        function clearOpenTimer() {
-            if (openTimer) {
-                clearTimeout(openTimer);
-                openTimer = null;
-            }
-        }
-
-        // 显示下载面板
-        function showDownloadPanel() {
-            clearOpenTimer();
-            document.getElementById('loadingPanel').classList.add('hidden');
-            document.getElementById('downloadPanel').classList.remove('hidden');
-        }
-
-        // App 成功打开后的处理
-        function onAppOpened() {
-            if (appOpened) return;
-            appOpened = true;
-            clearOpenTimer();
-            console.log('App 已成功打开');
-        }
-
-        // 尝试打开 App
+        // 尝试打开 App（保留原有的唤起逻辑）
         function tryOpenApp() {
-            // 避免重复调用
-            if (openTimer) return;
-            
             var appScheme = 'myweekend://activity?id=' + activityId;
             
             // 显示加载状态，隐藏下载面板
             document.getElementById('loadingPanel').classList.remove('hidden');
             document.getElementById('downloadPanel').classList.add('hidden');
             
-            // 重置状态
-            appOpened = false;
+            // 清除之前的定时器
+            if (openTimer) {
+                clearTimeout(openTimer);
+                openTimer = null;
+            }
             
             // 尝试打开 App
             window.location.href = appScheme;
             
-            // 设置定时器：2秒后检查是否成功
+            // 设置定时器：2秒后如果 App 没有成功打开，则显示下载面板
             openTimer = setTimeout(function() {
-                if (!appOpened) {
-                    // App 未打开，显示下载面板
-                    showDownloadPanel();
-                }
-                openTimer = null;
+                showDownloadPanel();
             }, 2000);
         }
-
-        // 监听页面可见性变化（最可靠的方式）
-        function handleVisibilityChange() {
-            if (document.hidden) {
-                // 页面被隐藏了，说明可能打开了其他应用
-                // 延迟一点确认，避免误判
-                setTimeout(function() {
-                    if (!appOpened) {
-                        onAppOpened();
-                    }
-                }, 500);
-            } else {
-                // 页面重新可见，说明 App 没有成功打开（或者用户返回了）
-                if (!appOpened && openTimer) {
-                    // 不清除定时器，让定时器自己处理
-                    console.log('页面重新可见，等待定时器');
-                }
+        
+        // 监听页面失去焦点（App 成功打开时会触发）
+        window.addEventListener('blur', function() {
+            // App 已成功打开，清除定时器，不显示下载面板
+            if (openTimer) {
+                clearTimeout(openTimer);
+                openTimer = null;
             }
+        });
+
+        // 显示下载面板
+        function showDownloadPanel() {
+            if (openTimer) {
+                clearTimeout(openTimer);
+                openTimer = null;
+            }
+            document.getElementById('loadingPanel').classList.add('hidden');
+            document.getElementById('downloadPanel').classList.remove('hidden');
         }
         
-        // 监听页面失去焦点（辅助检测）
-        window.addEventListener('blur', function() {
-            // 页面失去焦点，可能是 App 打开了，也可能是弹出了系统对话框
-            // 延迟确认，避免弹窗误判
-            setTimeout(function() {
-                if (!appOpened && document.hidden) {
-                    onAppOpened();
-                }
-            }, 300);
-        });
-        
-        // 监听页面可见性变化
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-        
-        // 页面加载完成后自动尝试打开
+        // 页面加载后自动尝试打开
         window.onload = function() {
             var idParam = getQueryParam('id');
             if (idParam) {
                 activityId = idParam;
             }
-            
-            // 延迟启动，确保页面完全加载
-            setTimeout(function() {
-                tryOpenApp();
-            }, 100);
+            tryOpenApp();
         };
     </script>
 </head>
@@ -183,7 +127,7 @@
         <div class="icon">🎯</div>
         <h1>周末灵感</h1>
         
-        <!-- 加载中状态 -->
+        <!-- 加载中状态（自动尝试打开） -->
         <div id="loadingPanel">
             <p>正在打开App...</p>
             <div class="loading">⏳ 请稍候</div>
@@ -191,22 +135,18 @@
                 <a href="javascript:showDownloadPanel();" class="btn btn-outline">📥 下载 App</a>
                 <a href="javascript:tryOpenApp();" class="btn btn-outline">🔄 重新打开</a>
             </div>
-            <p style="font-size: 12px; color: #999; margin-top: 16px;">
-                如果长时间未响应，请点击「下载 App」
-            </p>
         </div>
         
-        <!-- 下载面板（初始隐藏） -->
+        <!-- 下载面板（未安装时显示） -->
         <div id="downloadPanel" class="hidden">
-            <p>😢 无法打开App</p>
+            <p>😢 未检测到App安装</p>
             <p style="font-size: 14px;">请先下载「周末灵感」App</p>
             <a href="https://wwasd.lanzout.com/iSRYO3o5mwpc" class="btn">📥 下载 App</a>
             <br>
             <a href="javascript:tryOpenApp();" class="btn btn-outline">🔄 已安装？重新打开</a>
             <p style="font-size: 12px; color: #999; margin-top: 16px;">
-                💡 如果已安装但仍无法打开，请检查：<br>
-                1. 是否允许「周末灵感」应用打开链接<br>
-                2. 尝试在系统浏览器中打开此页面
+                💡 如果已安装App但仍无法打开，<br>
+                请点击右上角「在浏览器中打开」
             </p>
         </div>
     </div>
