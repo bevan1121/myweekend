@@ -76,7 +76,7 @@
             
             // 显示加载状态，隐藏下载面板
             document.getElementById('loadingPanel').classList.remove('hidden');
-            document.getElementById('downloadPanel').classList.add('hidden');
+            // document.getElementById('downloadPanel').classList.add('hidden');
             
             // 清除之前的定时器
             if (openTimer) {
@@ -103,14 +103,14 @@
         });
 
         // 显示下载面板
-        function showDownloadPanel() {
-            if (openTimer) {
-                clearTimeout(openTimer);
-                openTimer = null;
-            }
-            document.getElementById('loadingPanel').classList.add('hidden');
-            document.getElementById('downloadPanel').classList.remove('hidden');
-        }
+        // function showDownloadPanel() {
+        //     if (openTimer) {
+        //         clearTimeout(openTimer);
+        //         openTimer = null;
+        //     }
+        //     document.getElementById('loadingPanel').classList.add('hidden');
+        //     document.getElementById('downloadPanel').classList.remove('hidden');
+        // }
         
         // 页面加载后自动尝试打开
         window.onload = function() {
@@ -137,8 +137,8 @@
             </div>
         </div>
         
-        <!-- <!-- 下载面板（未安装时显示） -->
-        <div id="downloadPanel" class="hidden">
+        <!-- 下载面板（未安装时显示） -->
+        <!-- <div id="downloadPanel" class="hidden">
             <p>😢 未检测到App安装</p>
             <p style="font-size: 14px;">请先下载「周末灵感」App</p>
             <a href="https://wwasd.lanzout.com/iSRYO3o5mwpc" class="btn">📥 下载 App</a>
